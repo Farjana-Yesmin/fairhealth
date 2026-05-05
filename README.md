@@ -5,14 +5,12 @@
 [![PyPI version](https://badge.fury.io/py/fairhealth.svg)](https://pypi.org/project/fairhealth/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
----
+[![Documentation](https://readthedocs.org/projects/fairhealth/badge/?version=latest)](https://fairhealth.readthedocs.io)
 
 FairHealth is an open-source Python library for building **fair, explainable,
 and privacy-preserving** machine learning models for healthcare.
 
-Built by [Farjana Yesmin](https://farjana-yesmin.github.io/) from
-peer-reviewed research on maternal health, biosignals, and federated learning.
+Built by [Farjana Yesmin](https://farjana-yesmin.github.io/) from 5 peer-reviewed papers.
 
 ---
 
@@ -24,14 +22,15 @@ pip install fairhealth
 
 ---
 
-## What It Does
+## Modules and Paper Results
 
-| Module | What | Paper |
-|---|---|---|
-| `fairhealth.fairness` | Demographic parity, equalized odds, disparate impact | MobiHealth 2026 |
-| `fairhealth.explain` | SHAP wrappers + Fuzzy-XGBoost hybrid explainer | ICAIHE 2026 |
-| `fairhealth.federated` | FedAvg + differential privacy + sparsification | MedHE, CIBB 2026 |
-| `fairhealth.datasets` | Maternal health, dengue, flood PDNA — all public | Multiple |
+| Module | What | Paper | Key Result |
+|---|---|---|---|
+| `fairhealth.fairness` | Demographic parity, equalized odds, disparate impact | MobiHealth 2026 | DI improved 0.23→0.71 |
+| `fairhealth.explain` | SHAP wrappers + Fuzzy-XGBoost hybrid | ICAIHE 2026 | 88.67% acc, 71.4% clinician preference |
+| `fairhealth.federated` | FedAvg + CKKS HE + differential privacy | MedHE, CIBB 2026 | macro-F1=0.950, 97.5% comm reduction |
+| `fairhealth.lowresource` | Dengue triage, multilingual, low-bandwidth | DASGRI 2026 | F1=0.802, 75% user satisfaction |
+| `fairhealth.equity` | Fairness-aware flood aid allocation | CCAI 2026 (IEEE) | SPD↓41.6%, Regional gap↓43.2% |
 
 ---
 
@@ -41,62 +40,64 @@ pip install fairhealth
 import fairhealth as fh
 import numpy as np
 
-# ── Fairness audit ───────────────────────────────────────────────
+# ── Fairness audit (MobiHealth 2026) ─────────────────────────────────────
 from fairhealth.fairness.metrics import demographic_parity_diff
-
 y_pred    = np.array([1, 0, 1, 0, 1, 0])
-sensitive = np.array([0, 0, 0, 1, 1, 1])   # 0=young, 1=older
-
+sensitive = np.array([0, 0, 0, 1, 1, 1])
 dpd = demographic_parity_diff(y_pred, sensitive)
-print(f"Demographic Parity Difference: {dpd:.4f}")
-# → 0.3333  (gap between age groups)
+print(f"DPD: {dpd:.4f}")   # → 0.3333
 
-# ── Fuzzy risk explanation ───────────────────────────────────────
-from fairhealth.explain.fuzzy import get_fired_rules, score_to_label
-
+# ── Fuzzy explanation (ICAIHE 2026) ──────────────────────────────────────
+from fairhealth.explain.fuzzy import get_fired_rules
 rules = get_fired_rules(age=42, sbp=145, bs=12, hr=88)
-for rule in rules:
-    print(f"Rule {rule['id']}: {rule['condition']} → {rule['outcome']}")
-# → Rule 1: High BP AND High Blood Sugar → HIGH RISK
-# → Rule 5: High Heart Rate AND High BP  → HIGH RISK
+for r in rules:
+    print(f"Rule {r['id']}: {r['condition']} → {r['outcome']}")
 
-# ── Federated privacy ────────────────────────────────────────────
-from fairhealth.federated.privacy import sparsify, add_gaussian_noise
+# ── Dengue triage (DASGRI 2026) ──────────────────────────────────────────
+from fairhealth.lowresource.triage import assess_dengue_risk
+result = assess_dengue_risk(age=8, gender="male",
+                             area_type="urban", district="Dhaka")
+print(result["recommendation"])
 
-weights       = np.array([0.4, 0.3, 0.15, 0.1, 0.03, 0.02])
-sparse, rate  = sparsify(weights, sparsity=0.975)
-print(f"Communication reduced by {rate:.1%}")
-# → Communication reduced by 83.3%
+# ── Flood aid equity (CCAI 2026) ─────────────────────────────────────────
+from fairhealth.equity.flood_aid import generate_priority_ranking
+rankings = generate_priority_ranking(verbose=False)
+print(f"Top priority district: {rankings[0]['district']}")
+
+# ── Federated privacy (MedHE CIBB 2026) ──────────────────────────────────
+from fairhealth.federated.privacy import sparsify
+weights      = np.random.randn(1000)
+sparse_w, r  = sparsify(weights, sparsity=0.975)
+print(f"Communication reduced: {r:.1%}")  # → 97.5%
 ```
 
 ---
 
-## Real Results (from My Papers)
+## Validated Results From My Papers
 
-| Finding | Value |
-|---|---|
-| Maternal health model accuracy | 79.3% (Fuzzy-XGBoost hybrid) |
-| Clinicians preferring hybrid explanation | 71% (14 clinicians, ICAIHE 2026) |
-| Demographic parity difference (age groups) | 0.1011 |
-| Federated vs central accuracy gap | 9.3% |
-| Communication reduction (sparsification) | 83–97.5% |
+| Paper | Venue | Key Finding |
+|---|---|---|
+| ECG Fairness | MobiHealth 2026, EAI | Disparate Impact: 0.23 → 0.71 after debiasing |
+| Maternal Health XAI | ICAIHE 2026, Waseda | 88.67% accuracy, ROC-AUC=0.9703, 71.4% clinician preference |
+| MedHE Federated | CIBB 2026 | macro-F1=0.950, 97.5% comm reduction, MIA=51.1% |
+| Dengue Triage | DASGRI 2026, Springer LNNS | F1=0.802, AUC=0.851, 75% user satisfaction |
+| Flood Aid Equity | CCAI 2026, IEEE | SPD↓41.6%, Regional gap↓43.2%, R²=0.784 |
 
 ---
 
-## Datasets Used (All Public — No Hospital Access Needed)
+## Public Datasets Used (No Hospital Access Required)
 
 | Dataset | Domain | Source |
 |---|---|---|
-| Maternal Health Risk | Risk prediction | UCI / Kaggle |
-| Bangladesh Dengue | Symptom triage | DGHS Bangladesh |
-| Bangladesh Flood PDNA 2022 | Disaster equity | Government open data |
-| PTB-XL | ECG biosignals | PhysioNet (free) |
+| PTB-XL (4,367 records) | ECG biosignals | PhysioNet (free account) |
+| Maternal Health Risk (1,014) | Risk prediction | UCI ML Repository |
+| UCI Drug Reviews (215K) | NLP / drug effectiveness | UCI ML Repository |
+| Bangladesh Dengue (4,700) | Symptom triage | Kaggle + DGHS Dashboard |
+| Bangladesh PDNA 2022 (87 upazilas) | Flood disaster equity | Government open data |
 
 ---
 
-## Research Papers
-
-If my library helps your work, please cite:
+## Cite
 
 ```bibtex
 @software{fairhealth2026,
@@ -107,22 +108,13 @@ If my library helps your work, please cite:
 }
 ```
 
-**Related papers:**
-- Yesmin, F. (2026). *Fairness-Aware Representation Learning for ECG-Based Disease Prediction.* MobiHealth 2026.
-- Yesmin, F. et al. (2026). *Explainable AI for Maternal Health Risk Prediction in Bangladesh.* ICAIHE 2026.
-- Yesmin, F. (2026). *MedHE: Communication-Efficient Privacy-Preserving Federated Learning.* CIBB 2026.
-- Yesmin, F. & Akter, R. (2026). *Toward Equitable Recovery.* CCAI 2026 (IEEE).
+**Papers:**
+- Yesmin, F. (2026). *Fairness-Aware ECG-Based Disease Prediction.* MobiHealth 2026.
+- Yesmin, F. et al. (2026). *Explainable AI for Maternal Health Risk Prediction in Bangladesh.* ICAIHE 2026, Waseda.
+- Yesmin, F. (2026). *MedHE: Privacy-Preserving Federated Learning for Healthcare.* CIBB 2026.
+- Yesmin, F. (2026). *AI Chatbots for Dengue Symptom Triage in Bangladesh.* DASGRI 2026, Springer LNNS.
+- Yesmin, F. & Akter, R. (2026). *Toward Equitable Recovery.* CCAI 2026 (IEEE), Nanjing.
 
 ---
 
-## Author
-
-**Farjana Yesmin** — ML Researcher, Trustworthy AI for Healthcare  
-Website: [farjana-yesmin.github.io](https://farjana-yesmin.github.io/)  
-Email: farjanayesmin76@gmail.com
-
----
-
-## License
-
-MIT © Farjana Yesmin
+**Author:** Farjana Yesmin · [farjana-yesmin.github.io](https://farjana-yesmin.github.io/) · MIT License
