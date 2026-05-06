@@ -124,12 +124,12 @@ def compute_vulnerability_score(district_name):
             f"Available: {list(PDNA_DISTRICT_DATA.keys())}"
         )
     d = PDNA_DISTRICT_DATA[district_name]
-    
+
     # Normalize each component to 0-1
     poverty_n     = d["poverty_pct"] / 100.0
     agri_n        = d["agri_depend"] / 100.0
     inundation_n  = d["inundation_pct"] / 100.0
-    
+
     # Housing quality proxy: kutcha housing more common in rural areas
     # Lower pop density → more kutcha housing (proxy)
     housing_n     = 1.0 - min(d["pop_density"] / 1734, 1.0)
@@ -162,25 +162,25 @@ def compute_priority_score(district_name):
     """
     if district_name not in PDNA_DISTRICT_DATA:
         raise ValueError(f"District '{district_name}' not found.")
-    
+
     d = PDNA_DISTRICT_DATA[district_name]
-    
+
     # Normalise damage across all districts
     all_damages   = [v["damage_usd_m"] for v in PDNA_DISTRICT_DATA.values()]
     min_d, max_d  = min(all_damages), max(all_damages)
     norm_damage   = (d["damage_usd_m"] - min_d) / (max_d - min_d + 1e-8)
-    
+
     # Vulnerability score
     vuln          = compute_vulnerability_score(district_name)
-    
+
     # Priority formula from paper
     priority      = 0.6 * norm_damage + 0.4 * vuln
-    
+
     # Fair model adjustment: add Haor region correction
     # Paper: Haor upazilas move +3.8 positions on average
     haor_bonus    = 0.08 if d["region"] == "Haor" else 0.0
     fair_priority = min(priority + haor_bonus, 1.0)
-    
+
     return {
         "district"       : district_name,
         "priority_score" : round(float(fair_priority), 4),
@@ -216,9 +216,9 @@ def generate_priority_ranking(verbose=True):
     for district in PDNA_DISTRICT_DATA:
         score = compute_priority_score(district)
         rankings.append(score)
-    
+
     rankings.sort(key=lambda x: x["priority_score"], reverse=True)
-    
+
     if verbose:
         print("=== FAIR AID PRIORITY RANKING ===")
         print("From: Yesmin & Akter (2026) CCAI 2026 (IEEE)\n")
@@ -236,7 +236,7 @@ def generate_priority_ranking(verbose=True):
         print(f"\n  Paper result: Fair model reduced SPD by 41.6%")
         print(f"  Sunamganj (42.7% poverty, $159.6M damage):")
         print(f"  Baseline rank 14 → Fair rank 6")
-    
+
     return rankings
 
 
@@ -250,18 +250,18 @@ def fairness_gap_analysis(verbose=True):
     """
     haor_scores     = []
     non_haor_scores = []
-    
+
     for district, data in PDNA_DISTRICT_DATA.items():
         score = compute_priority_score(district)
         if data["region"] == "Haor":
             haor_scores.append(score["priority_score"])
         else:
             non_haor_scores.append(score["priority_score"])
-    
+
     haor_mean     = np.mean(haor_scores)
     non_haor_mean = np.mean(non_haor_scores)
     spd           = abs(haor_mean - non_haor_mean)
-    
+
     result = {
         "haor_mean_priority"    : round(float(haor_mean), 4),
         "non_haor_mean_priority": round(float(non_haor_mean), 4),
@@ -270,7 +270,7 @@ def fairness_gap_analysis(verbose=True):
         "paper_regional_gap_reduction": "43.2%",
         "paper_model"           : "Fair R²=0.784 vs Baseline R²=0.811",
     }
-    
+
     if verbose:
         print("=== FAIRNESS GAP ANALYSIS (Haor vs Non-Haor) ===")
         print(f"  Haor mean priority     : {result['haor_mean_priority']:.4f}")
@@ -281,5 +281,5 @@ def fairness_gap_analysis(verbose=True):
         print(f"    Regional gap reduction: {result['paper_regional_gap_reduction']}")
         print(f"    Fair model R²         : 0.784 (baseline: 0.811)")
         print(f"    Accuracy cost         : only 2.7 percentage points")
-    
+
     return result
