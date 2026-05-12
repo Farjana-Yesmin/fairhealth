@@ -5,6 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/fairhealth.svg)](https://pypi.org/project/fairhealth/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2605.08198-b31b1b.svg)](https://arxiv.org/abs/2605.08198)
 
 FairHealth is an open-source Python library for building **fair, explainable,
 and privacy-preserving** machine learning models for healthcare.
@@ -96,6 +97,15 @@ All papers are accepted. Preprint links below; final proceedings forthcoming.
 ## Cite
 
 ```bibtex
+@article{yesmin2026fairhealth,
+  author  = {Yesmin, Farjana},
+  title   = {FairHealth: An Open-Source Python Library for
+             Trustworthy Healthcare AI in Low-Resource Settings},
+  journal = {arXiv preprint arXiv:2605.08198},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2605.08198}
+}
+
 @software{fairhealth2026,
   author = {Yesmin, Farjana},
   title  = {FairHealth: Trustworthy Healthcare AI},

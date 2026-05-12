@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fairhealth"
-version = "0.1.0"
+version = "0.1.1"
 description = "Trustworthy Healthcare AI: federated learning, fairness auditing, and explainability for clinical settings"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -47,6 +47,7 @@ nlp       = ["transformers>=4.35", "nltk>=3.8"]
 dev       = ["pytest>=7.4", "black>=23.0", "twine>=4.0", "build>=0.10"]
 
 [project.urls]
+"Research Paper" = "https://arxiv.org/abs/2605.08198"
 Homepage      = "https://github.com/Farjana-Yesmin/fairhealth"
 Documentation = "https://fairhealth.readthedocs.io"
 Repository    = "https://github.com/Farjana-Yesmin/fairhealth"
