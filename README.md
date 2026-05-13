@@ -67,7 +67,14 @@ print(f"Communication reduced: {rate:.1%}")  # → 97.5%
 ```
 
 ---
+## Hugging Face Datasets
+The datasets curated for the `FairHealth` ecosystem are available on the [Hugging Face Hub](https://huggingface.co/fairhealth):
 
+* **[Bangladesh Dengue Triage](https://huggingface.co/datasets/fairhealth/bangladesh-dengue)**
+* **[Bangladesh Flood PDNA 2022](https://huggingface.co/datasets/fairhealth/bangladesh-flood-pdna-2022)**
+* **[Bangladesh Maternal Health Risk](https://huggingface.co/datasets/fairhealth/bangladesh-maternal-health)**
+
+---
 ## Research Papers
 
 All papers are accepted. Preprint links below; final proceedings forthcoming.
@@ -93,6 +100,7 @@ All papers are accepted. Preprint links below; final proceedings forthcoming.
 | Bangladesh PDNA 2022 (87 upazilas) | Flood equity | Government open data |
 
 ---
+
 
 ## Cite
 
